@@ -8,7 +8,7 @@ router = Router()
 
 
 def get_instruction():
-    with open('bot/data/instruction.txt', 'r', encoding='utf-8') as file:
+    with open('data/instruction.txt', 'r', encoding='utf-8') as file:
         text = file.read()
     return text
 
@@ -18,6 +18,8 @@ def get_instruction():
 async def start(clb: Message | CallbackQuery) -> None:
     if type(clb) == Message:
         await clb.answer(text=get_instruction())
+
+    print(clb.chat.id)
 
     builder = InlineKeyboardBuilder()
 
