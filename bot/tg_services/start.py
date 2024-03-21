@@ -1,5 +1,5 @@
 import requests
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -13,9 +13,11 @@ def get_instruction():
     return text
 
 
+@router.callback_query(F.data == 'start')
 @router.message(Command("start"))
-async def start(msg: Message) -> None:
-    await msg.answer(text=get_instruction())
+async def start(clb: Message | CallbackQuery) -> None:
+    if type(clb) == Message:
+        await clb.answer(text=get_instruction())
 
     builder = InlineKeyboardBuilder()
 
@@ -25,7 +27,16 @@ async def start(msg: Message) -> None:
     builder.add(InlineKeyboardButton(text='Крипто кошелек', callback_data='crypto'))
     builder.row(InlineKeyboardButton(text='Инструкция по оплате', callback_data='instruction'))
 
-    await msg.answer(
-        text='Какой способ оплаты выбираете?',
-        reply_markup=builder.as_markup()
-    )
+    try:
+        # При Callback
+        await clb.bot.edit_message_reply_markup(
+            chat_id=clb.message.chat.id,
+            message_id=clb.message.message_id,
+            reply_markup=builder.as_markup()
+        )
+        # При Message
+    except Exception as ex:
+        await clb.answer(
+            text='Какой способ оплаты выбираете?',
+            reply_markup=builder.as_markup()
+        )
