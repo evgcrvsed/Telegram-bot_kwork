@@ -1,4 +1,4 @@
-import os, asyncio, logging, sys
+import os, asyncio, logging
 from aiogram import Dispatcher, Bot
 from dotenv import load_dotenv
 load_dotenv()

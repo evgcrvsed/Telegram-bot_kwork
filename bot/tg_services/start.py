@@ -18,7 +18,7 @@ async def start(msg: Message) -> None:
     builder.add(InlineKeyboardButton(text='Крипто кошелек', callback_data='crypto'))
     builder.row(InlineKeyboardButton(text='Инструкция по оплате', callback_data='instruction'))
 
-    with open('data/instruction.txt', 'r', encoding='utf-8') as file:
+    with open('bot/data/instruction.txt', 'r', encoding='utf-8') as file:
         text = file.read()
 
     await msg.answer(
