@@ -13,7 +13,7 @@ async def give_credentials(clb, filename, prefix):
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text='Вернуться к картам', callback_data=f"start"))
 
-    with open(f"bot/data/{filename}.txt", "r") as file:
+    with open(f"data/{filename}.txt", "r") as file:
         numbers = [line.strip() for line in file]
 
     await clb.message.answer(text=f'{prefix}: {choice(numbers)}', reply_markup=builder.as_markup())
