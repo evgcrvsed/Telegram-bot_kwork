@@ -18,6 +18,8 @@ async def give_credentials(clb, filename, prefix):
 
     await clb.message.answer(text=f'{prefix}: {choice(numbers)}', reply_markup=builder.as_markup())
 
+    await clb.message.answer(text=clb.message.)
+
     await select_option_message.delete()
 
 

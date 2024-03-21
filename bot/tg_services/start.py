@@ -25,7 +25,7 @@ async def start(clb: Message | CallbackQuery) -> None:
     builder.add(InlineKeyboardButton(text='Зарубежная карта', callback_data='foreign_cards'))
     builder.row(InlineKeyboardButton(text='Юмани', callback_data='umoney'))
     builder.add(InlineKeyboardButton(text='Крипто кошелек', callback_data='crypto'))
-    builder.row(InlineKeyboardButton(text='Инструкция по оплате', callback_data='instruction'))
+    builder.row(InlineKeyboardButton(text='Инструкция по оплате', callback_data=f"start"))
 
     try:
         # При Callback
