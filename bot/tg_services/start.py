@@ -7,8 +7,15 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 router = Router()
 
 
+def get_instruction():
+    with open('bot/data/instruction.txt', 'r', encoding='utf-8') as file:
+        text = file.read()
+    return text
+
+
 @router.message(Command("start"))
 async def start(msg: Message) -> None:
+    await msg.answer(text=get_instruction())
 
     builder = InlineKeyboardBuilder()
 
@@ -18,10 +25,7 @@ async def start(msg: Message) -> None:
     builder.add(InlineKeyboardButton(text='Крипто кошелек', callback_data='crypto'))
     builder.row(InlineKeyboardButton(text='Инструкция по оплате', callback_data='instruction'))
 
-    with open('bot/data/instruction.txt', 'r', encoding='utf-8') as file:
-        text = file.read()
-
     await msg.answer(
-        text=text,
+        text='Какой способ оплаты выбираете?',
         reply_markup=builder.as_markup()
     )
