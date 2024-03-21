@@ -3,7 +3,7 @@ from aiogram import Dispatcher, Bot
 from dotenv import load_dotenv
 load_dotenv()
 
-from tg_services import start, cards
+from tg_services import start, cards, messages_handler
 
 token: str = os.getenv("TELEGRAM_TOKEN")
 bot = Bot(token=token)
@@ -13,7 +13,8 @@ dp = Dispatcher()
 async def main() -> None:
     dp.include_routers(
         start.router,
-        cards.router
+        cards.router,
+        messages_handler.router
     )
     await dp.start_polling(bot, skip_updates=True)
 
