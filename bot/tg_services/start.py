@@ -19,7 +19,6 @@ async def start(clb: Message | CallbackQuery) -> None:
     if type(clb) == Message:
         await clb.answer(text=get_instruction())
 
-
     builder = InlineKeyboardBuilder()
 
     builder.row(InlineKeyboardButton(text='Карта РФ', callback_data=f"russian_cards"))
@@ -37,9 +36,11 @@ async def start(clb: Message | CallbackQuery) -> None:
             message_id=clb.message.message_id,
             reply_markup=builder.as_markup()
         )
+        await clb.message.reply_to_message.delete()
+
         await clb.message.edit_text(
             text='Выберите способ оплаты',
-            reply_markup=builder.as_markup()
+            reply_markup=builder.as_markup(),
             )
         # При Message
     except Exception as ex:
