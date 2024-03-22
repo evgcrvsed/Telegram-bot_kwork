@@ -4,10 +4,18 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from bot.main import db
+
 router = Router()
 
+def get_cards(name):
+    data = db.get_info()
 
-async def give_credentials(clb, filename, prefix):
+
+
+
+
+async def give_credentials(clb, payment_type):
     select_option_message = clb.message
 
     builder = InlineKeyboardBuilder()

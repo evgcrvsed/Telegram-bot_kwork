@@ -2,6 +2,7 @@ import os, asyncio, logging
 from aiogram import Dispatcher, Bot
 from dotenv import load_dotenv
 from bot.data.DataBase import DataBase
+db = DataBase('bot/data/database.db')
 load_dotenv()
 
 from tg_services import start, cards, messages_handler
@@ -9,7 +10,6 @@ from tg_services import start, cards, messages_handler
 token: str = os.getenv("TELEGRAM_TOKEN")
 bot = Bot(token=token)
 dp = Dispatcher()
-db = DataBase('bot/data/Instruction.db')
 
 async def main() -> None:
     dp.include_routers(

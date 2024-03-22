@@ -5,12 +5,18 @@ from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKe
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 router = Router()
+from bot.main import db
 
 
 def get_instruction():
-    with open('bot/data/instruction.txt', 'r', encoding='utf-8') as file:
-        text = file.read()
-    return text
+    data = db.get_info()
+
+    if data['instruction']:
+        instruction_text = "\n    ".join(card_number for _, card_number in data['instruction'])
+    else:
+        instruction_text = "Данные инструкции отсутствуют!"
+
+    return instruction_text
 
 
 @router.callback_query(F.data == 'start')
