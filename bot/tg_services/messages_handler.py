@@ -3,7 +3,11 @@ import os
 from aiogram import Bot, Router, types, F
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.filters import Command
 from dotenv import load_dotenv
+
+from bot.main import db
 
 load_dotenv()
 
@@ -16,6 +20,113 @@ ADMIN_GROUP_ID = '-1002114400170'
 customer_id: id = None
 customer_request: id = None
 info_reply_to_admin: types.Message = None
+
+
+@router.message(Command("show_info"))
+async def show_info(msg: Message):
+    if str(msg.chat.id) != ADMIN_GROUP_ID:
+        return
+
+    data = db.get_info()
+
+    if data['instruction']:
+        instruction_text = "\n    ".join(card_number for _, card_number in data['instruction'])
+    else:
+        instruction_text = "Данные отсутствуют!"
+
+    if data['russian_cards']:
+        russian_cards_text = "\n    ".join(card_number for _, card_number in data['russian_cards'])
+    else:
+        russian_cards_text = "Данные отсутствуют!"
+
+    if data['foreign_cards']:
+        foreign_cards_text = "\n    ".join(card_number for _, card_number in data['foreign_cards'])
+    else:
+        foreign_cards_text = "Данные отсутствуют!"
+
+    if data['umoney']:
+        umoney_text = "\n    ".join(card_number for _, card_number in data['umoney'])
+    else:
+        umoney_text = "Данные отсутствуют!"
+
+    if data['crypto']:
+        crypto_text = "\n    ".join(card_number for _, card_number in data['crypto'])
+    else:
+        crypto_text = "Данные отсутствуют!"
+
+    text = f"""
+Instruction:
+    {f'{instruction_text}'}
+Russian cards:
+    {f'{russian_cards_text}'}
+Foreign cards:
+    {f'{foreign_cards_text}'}
+Umoney:
+    {f'{umoney_text}'}
+Crypto:
+    {f'{crypto_text}'}
+    """
+
+    await msg.answer(text)
+
+
+
+@router.message(Command("edit_instruction"))
+async def edit_instruction(msg: Message):
+    if str(msg.chat.id) != ADMIN_GROUP_ID:
+        return
+
+    instruction_text = (msg.text).replace('/edit_instruction ', '')
+
+    db.edit_instruction(instruction_text)
+
+    await msg.answer(f'Инструкция успешно изменена!')
+
+
+@router.message(Command("add_credentials"))
+async def add_credentials(msg: Message):
+    if str(msg.chat.id) != ADMIN_GROUP_ID:
+        return
+
+    data = (msg.text).replace('/add_credentials ', '').rstrip().split()
+
+    table_name = data[0]
+    card_number = " ".join(data[1:])
+    print(card_number)
+   # table_name, card_number =
+    if 'rus' in table_name.lower(): result = db.add_credentials(table_name="RussianCredentials", card_number=card_number) # rus
+    elif 'um' in table_name.lower(): result = db.add_credentials(table_name="UmoneyCredentials", card_number=card_number) # umoney
+    elif 'for' in table_name.lower(): result = db.add_credentials(table_name="ForeignCredentials", card_number=card_number) # foreign
+    elif 'cr' in table_name.lower(): result = db.add_credentials(table_name="CryptoCredentials", card_number=card_number) # crypto
+    else:
+        await msg.answer("Повторите запрос! (неправильно ввели вид кошелька)\nДоступны: russian, umoney, foreign, crypto")
+        return
+    if result == 1:
+        await msg.answer(f"Номер карты {card_number} уже существует!!")
+        return
+    await msg.answer(f"Номер карты {card_number} успешно добавлен!")
+
+
+@router.message(Command("delete_credentials"))
+async def delete_credentials(msg: Message):
+    if str(msg.chat.id) != ADMIN_GROUP_ID:
+        return
+
+    table_name = (msg.text).replace('/delete_credentials ', '')
+
+    if 'rus' in table_name.lower():
+        result = db.delete_credentials(table_name="RussianCredentials")  # rus
+    elif 'um' in table_name.lower():
+        result = db.delete_credentials(table_name="UmoneyCredentials")  # umoney
+    elif 'for' in table_name.lower():
+        result = db.delete_credentials(table_name="ForeignCredentials")  # foreign
+    elif 'cr' in table_name.lower():
+        result = db.delete_credentials(table_name="CryptoCredentials")  # crypto
+    else:
+        await msg.answer(
+            "Повторите запрос! (неправильно ввели вид кошелька)\nДоступны: russian, umoney, foreign, crypto")
+
+    await msg.answer(f"Все карты типа {table_name} успешно очищены!")
 
 
 @router.message(F.text)

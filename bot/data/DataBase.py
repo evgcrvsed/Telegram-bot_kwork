@@ -12,16 +12,57 @@ class DataBase:
 
     def create_table(self):
         self.get_cursor.execute("""CREATE TABLE IF NOT EXISTS Instruction (
-                                   description TEXT NOT NULL
-                                   )""")
+                                           id INTEGER PRIMARY KEY, 
+                                           description TEXT NOT NULL
+                                           )""")
+
+        # Список таблиц для создания
+        tables = ['RussianCredentials', 'UmoneyCredentials', 'ForeignCredentials', 'CryptoCredentials']
+
+        # Цикл для создания таблиц
+        for table in tables:
+            self.get_cursor.execute(f"""CREATE TABLE IF NOT EXISTS {table} (
+                                               id INTEGER PRIMARY KEY,
+                                               number TEXT NOT NULL
+                                               )""")
+
         return 1
 
     def drop_table(self):
         self.get_cursor.execute("DROP TABLE IF EXISTS Instruction")
         self.create_table()
 
-    def add_event(self, event_name, event_description, event_datee):
-        self.get_cursor.execute('INSERT INTO Events (name, description, datee) VALUES (?, ?, ?)', (event_name, event_description, event_datee)).connection.commit()
+    def edit_instruction(self, text):
+        rows = self.get_cursor.execute("SELECT * FROM Instruction").fetchall()
+
+        if len(rows) == 0:
+            self.get_cursor.execute(f"INSERT INTO Instruction (description) VALUES (?)", (text, )).connection.commit()
+        else:
+            self.get_cursor.execute('UPDATE Instruction SET description = ? WHERE rowid = 1', (text,)).connection.commit()
+
+    def add_credentials(self, table_name, card_number):
+        rows = self.get_cursor.execute(f"SELECT * FROM {table_name}").fetchall()
+        for (id, number) in rows:
+            if number == card_number:
+                return 1
+
+        self.get_cursor.execute(f"INSERT INTO {table_name} (number) VALUES (?)", (card_number, )).connection.commit()
+
+        return 0
+
+    def delete_credentials(self, table_name):
+        self.get_cursor.execute(f"DELETE FROM {table_name}").connection.commit()
+
+    def get_info(self):
+        result = {
+            'instruction': self.get_cursor.execute("SELECT * FROM Instruction").fetchall(),
+            'russian_cards': self.get_cursor.execute("SELECT * FROM RussianCredentials").fetchall(),
+            'foreign_cards': self.get_cursor.execute("SELECT * FROM ForeignCredentials").fetchall(),
+            'umoney': self.get_cursor.execute("SELECT * FROM UmoneyCredentials").fetchall(),
+            'crypto': self.get_cursor.execute("SELECT * FROM CryptoCredentials").fetchall()
+        }
+
+        return result
 
     @property
     def get_cursor(self):
@@ -29,5 +70,4 @@ class DataBase:
             return con.cursor()
 
 
-db = DataBase('data/Instruction.db')
-db.create_table()
+
