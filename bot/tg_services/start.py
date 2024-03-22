@@ -8,7 +8,7 @@ router = Router()
 
 
 def get_instruction():
-    with open('data/instruction.txt', 'r', encoding='utf-8') as file:
+    with open('bot/data/instruction.txt', 'r', encoding='utf-8') as file:
         text = file.read()
     return text
 
@@ -19,7 +19,6 @@ async def start(clb: Message | CallbackQuery) -> None:
     if type(clb) == Message:
         await clb.answer(text=get_instruction())
 
-    print(clb.chat.id)
 
     builder = InlineKeyboardBuilder()
 
@@ -28,17 +27,23 @@ async def start(clb: Message | CallbackQuery) -> None:
     builder.row(InlineKeyboardButton(text='Юмани', callback_data='umoney'))
     builder.add(InlineKeyboardButton(text='Крипто кошелек', callback_data='crypto'))
     builder.row(InlineKeyboardButton(text='Инструкция по оплате', callback_data=f"start"))
+    builder.row(InlineKeyboardButton(text='Отправить вопрос администратору', callback_data=f"user_message"))
 
     try:
         # При Callback
-        await clb.bot.edit_message_reply_markup(
+        message = clb.bot.edit_message_reply_markup
+        await message(
             chat_id=clb.message.chat.id,
             message_id=clb.message.message_id,
             reply_markup=builder.as_markup()
         )
+        await clb.message.edit_text(
+            text='Выберите способ оплаты',
+            reply_markup=builder.as_markup()
+            )
         # При Message
     except Exception as ex:
         await clb.answer(
-            text='Какой способ оплаты выбираете?',
+            text='Выберите способ оплаты',
             reply_markup=builder.as_markup()
         )
