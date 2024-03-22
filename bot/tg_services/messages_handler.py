@@ -2,7 +2,7 @@ import os
 
 from aiogram import Bot, Router, types, F
 from aiogram.types import InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardMarkup, InlineKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -14,17 +14,19 @@ router = Router()
 ADMIN_GROUP_ID = '-1002114400170'
 
 customer_id: id = None
+customer_request: id = None
+info_reply_to_admin: types.Message = None
+
 
 @router.message(F.text)
 async def forward_to_admins(message: types.Message):
-    global customer_id
+    global customer_id, customer_request, info_reply_to_admin
 
     if str(message.chat.id) == ADMIN_GROUP_ID:
-        return await reply_to_user_handler(message, message.text, customer_id)
-
+        print(customer_request)
+        return await reply_to_user_handler(message, customer_id, customer_request, info_reply_to_admin)
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text='Ответить', callback_data='reply_to_user'))
-    builder.add(InlineKeyboardButton(text='Проигнорировать', callback_data='ignore_to_user'))
 
     # Forward user message to admin group
     await bot.send_message(
@@ -34,9 +36,11 @@ async def forward_to_admins(message: types.Message):
         reply_markup=builder.as_markup()
     )
 
-    await message.answer("Ваше вопрос был переслан администраторам, ожидайте ответа.")
+    info_reply_to_admin = await message.answer("Ваше вопрос был переслан администраторам, ожидайте ответа.")
 
+    customer_request = message
     customer_id = message.from_user.id
+    info_reply_to_admin = info_reply_to_admin
 
 
 @router.callback_query(F.data == 'reply_to_user')
@@ -44,18 +48,18 @@ async def reply_to_user(callback_query: types.CallbackQuery):
     await callback_query.message.answer("Введите ваш ответ на запрос пользователя: ")
 
 
-@router.callback_query(F.data == 'ignore_to_user')
-async def ignore_to_user(callback_query: types.CallbackQuery):
-    message = callback_query.message
-
-    builder = InlineKeyboardBuilder()
-    builder.add(InlineKeyboardButton(text="Вернуться назад", callback_data='start'))
-
-    await callback_query.message.answer("Администратор отклонил ваш запрос", reply_markup=builder.as_markup())
-    await message.delete()
-
-
-async def reply_to_user_handler(message: types.Message, text: str, user_id):
+async def reply_to_user_handler(message: types.Message, user_id, customer_message: types.Message, info_reply_admin_message):
     await message.answer(text="Ваш ответ был переадресован пользователю")
-    replied_answer = f"Администратор ответил на ваш вопрос:\n *_{text}_*"
-    await bot.send_message(chat_id=user_id, text=replied_answer, parse_mode="MarkdownV2")
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text='Вернуться к картам', callback_data=f"start"))
+
+    replied_answer = f"Администратор ответил на ваш вопрос:\n *_{message.text}_*"
+
+    await info_reply_admin_message.delete()
+
+    await bot.send_message(
+        chat_id=user_id,
+        reply_to_message_id=customer_message.message_id,
+        text=replied_answer, parse_mode="MarkdownV2",
+        reply_markup=builder.as_markup()
+    )
