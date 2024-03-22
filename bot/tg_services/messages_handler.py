@@ -1,13 +1,12 @@
 import os
 
 from aiogram import Bot, Router, types, F
-from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import Message, InlineKeyboardButton
 from aiogram.filters import Command
 from dotenv import load_dotenv
 
-from bot.main import db
+from main import db
 
 load_dotenv()
 
@@ -70,7 +69,6 @@ Crypto:
     await msg.answer(text)
 
 
-
 @router.message(Command("edit_instruction"))
 async def edit_instruction(msg: Message):
     if str(msg.chat.id) != ADMIN_GROUP_ID:
@@ -92,12 +90,15 @@ async def add_credentials(msg: Message):
 
     table_name = data[0]
     card_number = " ".join(data[1:])
-    print(card_number)
-   # table_name, card_number =
-    if 'rus' in table_name.lower(): result = db.add_credentials(table_name="RussianCredentials", card_number=card_number) # rus
-    elif 'um' in table_name.lower(): result = db.add_credentials(table_name="UmoneyCredentials", card_number=card_number) # umoney
-    elif 'for' in table_name.lower(): result = db.add_credentials(table_name="ForeignCredentials", card_number=card_number) # foreign
-    elif 'cr' in table_name.lower(): result = db.add_credentials(table_name="CryptoCredentials", card_number=card_number) # crypto
+
+    if 'rus' in table_name.lower():
+        result = db.add_credentials(table_name="RussianCredentials", card_number=card_number) # rus
+    elif 'um' in table_name.lower():
+        result = db.add_credentials(table_name="UmoneyCredentials", card_number=card_number) # umoney
+    elif 'for' in table_name.lower():
+        result = db.add_credentials(table_name="ForeignCredentials", card_number=card_number) # foreign
+    elif 'cry' in table_name.lower():
+        result = db.add_credentials(table_name="CryptoCredentials", card_number=card_number) # crypto
     else:
         await msg.answer("Повторите запрос! (неправильно ввели вид кошелька)\nДоступны: russian, umoney, foreign, crypto")
         return
@@ -120,7 +121,7 @@ async def delete_credentials(msg: Message):
         result = db.delete_credentials(table_name="UmoneyCredentials")  # umoney
     elif 'for' in table_name.lower():
         result = db.delete_credentials(table_name="ForeignCredentials")  # foreign
-    elif 'cr' in table_name.lower():
+    elif 'cry' in table_name.lower():
         result = db.delete_credentials(table_name="CryptoCredentials")  # crypto
     else:
         await msg.answer(
@@ -134,8 +135,8 @@ async def forward_to_admins(message: types.Message):
     global customer_id, customer_request, info_reply_to_admin
 
     if str(message.chat.id) == ADMIN_GROUP_ID:
-        print(customer_request)
         return await reply_to_user_handler(message, customer_id, customer_request, info_reply_to_admin)
+
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text='Ответить', callback_data='reply_to_user'))
 
@@ -160,6 +161,10 @@ async def reply_to_user(callback_query: types.CallbackQuery):
 
 
 async def reply_to_user_handler(message: types.Message, user_id, customer_message: types.Message, info_reply_admin_message):
+
+    if user_id is None:
+        return
+
     await message.answer(text="Ваш ответ был переадресован пользователю")
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text='Вернуться к картам', callback_data=f"start"))
@@ -174,3 +179,4 @@ async def reply_to_user_handler(message: types.Message, user_id, customer_messag
         text=replied_answer, parse_mode="MarkdownV2",
         reply_markup=builder.as_markup()
     )
+
