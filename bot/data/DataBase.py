@@ -69,5 +69,15 @@ class DataBase:
         with sq.connect(self._patch) as con:
             return con.cursor()
 
+    def get_russian_credentials(self):
+        return self.get_cursor.execute("SELECT * FROM RussianCredentials").fetchall()
 
+    def get_foreign_credentials(self):
+        return self.get_cursor.execute("SELECT * FROM ForeignCredentials").fetchall()
+
+    def get_umoney_credentials(self):
+        return self.get_cursor.execute("SELECT * FROM UmoneyCredentials").fetchall()
+
+    def get_crypto_credentials(self):
+        return self.get_cursor.execute("SELECT * FROM CryptoCredentials").fetchall()
 
