@@ -24,22 +24,6 @@ async def delete_credentials(msg: Message):
 
     await msg.answer("Выберите какие типы карт вы хотите удалить.", reply_markup=builder.as_markup())
 
-    # table_name = (msg.text).replace('/delete_credentials ', '')
-    #
-    # if 'rus' in table_name.lower():
-    #     result = db.delete_credentials(table_name="RussianCredentials")  # rus
-    # elif 'um' in table_name.lower():
-    #     result = db.delete_credentials(table_name="UmoneyCredentials")  # umoney
-    # elif 'for' in table_name.lower():
-    #     result = db.delete_credentials(table_name="ForeignCredentials")  # foreign
-    # elif 'cry' in table_name.lower():
-    #     result = db.delete_credentials(table_name="CryptoCredentials")  # crypto
-    # else:
-    #     await msg.answer(
-    #         "Повторите запрос! (неправильно ввели вид кошелька)\nДоступны: russian, umoney, foreign, crypto")
-
-    await msg.answer(f"Все карты успешно удалены!")
-
 
 @router.callback_query(F.data == "delete_russian_cards")
 async def delete_russian_cards(clb: CallbackQuery):
