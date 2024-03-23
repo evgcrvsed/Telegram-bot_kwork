@@ -1,8 +1,9 @@
+import asyncio
 import os
 import re
 from aiogram import Bot, Router, types, F
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.types import Message, InlineKeyboardButton
+from aiogram.types import Message, InlineKeyboardButton, CallbackQuery
 from aiogram.filters import Command
 from dotenv import load_dotenv
 from .cards_add_admin_handler import confirm_add_credentials
@@ -16,8 +17,6 @@ router = Router()
 
 ADMIN_GROUP_ID = '-1002114400170'
 
-customer_requests = {}
-info_reply_to_admin: types.Message = None
 
 
 @router.message(Command("show_info"))
@@ -82,7 +81,6 @@ async def edit_instruction(msg: Message):
 
 @router.message(F.text)
 async def forward_to_admins(message: types.Message):
-    global info_reply_to_admin
 
     if str(message.chat.id) == ADMIN_GROUP_ID:
 
@@ -93,75 +91,25 @@ async def forward_to_admins(message: types.Message):
                 return await message.answer("Введены некоректные реквезиты карты.")
             return await confirm_add_credentials(message, card_number=card_number)
 
-        # return await reply_to_user_handler(message, info_reply_to_admin)
+        return
 
-    customer_requests[message.from_user.id] = message
     info_reply_to_admin = await message.answer("Ваш вопрос был переслан администраторам, ожидайте ответа.")
 
-    # builder = InlineKeyboardBuilder()
-    # builder.add(InlineKeyboardButton(text='Ответить', callback_data='reply_to_user'))
-    #
-    # await bot.forward_message(
-    #     chat_id=ADMIN_GROUP_ID,
-    #     from_chat_id=message.chat.id,
-    #     message_id=message.message_id,
-    # )
-    # # Forward user message to admin group
-    # await bot.send_message(
-    #     chat_id=ADMIN_GROUP_ID,
-    #     text=f"Пользователь отправил вам запрос:\n *_{message.text}_*",
-    #     parse_mode="MarkdownV2",
-    #     reply_markup=builder.as_markup()
-    # )
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text='Удалить это сообщение', callback_data=f"delete_from_admin_message"))
 
     await bot.send_message(
         chat_id=ADMIN_GROUP_ID,
         text=f"Отправитель: @{message.from_user.username}\n\n```Сообщение\n{message.text}```",
-        parse_mode="MarkdownV2"
+        parse_mode="MarkdownV2",
+        reply_markup=builder.as_markup()
     )
 
+    await asyncio.sleep(10)
+
+    await info_reply_to_admin.delete()
 
 
-@router.message()
-async def reply_to_user(message: types.Message):
-    user_id = message.forward_from.id
-    await bot.send_message(user_id, message.text)
-
-
-#
-# @router.callback_query(F.data == 'reply_to_user')
-# async def reply_to_user(callback_query: types.CallbackQuery):
-#     print(customer_requests.keys())
-#     user_id = callback_query.from_user.id
-#     if user_id not in customer_requests:
-#         return
-#     await callback_query.message.answer("Введите ваш ответ на запрос пользователя: ")
-
-
-# async def reply_to_user_handler(message: types.Message, info_reply_admin):
-#     print(customer_requests.keys())
-#     user_id = message.from_user.id
-#     if user_id not in customer_requests:
-#         return
-#
-#     customer_message_data = customer_requests[user_id]
-#     reply_admin_message = message.text
-#
-#     if customer_message_data is None:
-#         return
-#
-#     await message.answer(text="Ваш ответ был переадресован пользователю")
-#     builder = InlineKeyboardBuilder()
-#     builder.row(InlineKeyboardButton(text='Вернуться к картам', callback_data=f"start"))
-#
-#     replied_answer = f"Администратор ответил на ваш вопрос:\n *_{reply_admin_message}_*"
-#
-#     await info_reply_admin.delete()
-#
-#     await bot.send_message(
-#         chat_id=user_id,
-#         reply_to_message_id=customer_message_data.message_id,
-#         text=replied_answer, parse_mode="MarkdownV2",
-#         reply_markup=builder.as_markup()
-#     )
-
+@router.callback_query(F.data == "delete_from_admin_message")
+async def delete_from_admin_message(clb: CallbackQuery):
+    await clb.message.delete()
