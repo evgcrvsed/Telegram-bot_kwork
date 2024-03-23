@@ -3,7 +3,7 @@ from aiogram import Router, F, Bot
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from main import db
+from bot.main import db
 router = Router()
 
 token: str = os.getenv("TELEGRAM_TOKEN")
@@ -37,12 +37,14 @@ def get_instruction():
     return instruction_text
 
 
+@router.callback_query(F.data == 'start_instruction')
+async def start_instruction_callback(clb: CallbackQuery) -> Message:
+    return await clb.message.answer(text=get_instruction())
+
 @router.callback_query(F.data == 'start')
 @router.message(Command("start"))
 async def start(clb: Message | CallbackQuery) -> None:
     if type(clb) == Message:
-        await clb.answer(text=get_instruction())
-
         await set_commands(clb)
 
     builder = InlineKeyboardBuilder()
@@ -51,7 +53,7 @@ async def start(clb: Message | CallbackQuery) -> None:
     builder.add(InlineKeyboardButton(text='Зарубежная карта', callback_data='foreign_cards'))
     builder.row(InlineKeyboardButton(text='Юмани', callback_data='umoney'))
     builder.add(InlineKeyboardButton(text='Крипто кошелек', callback_data='crypto'))
-    builder.row(InlineKeyboardButton(text='Инструкция по оплате', callback_data=f"start"))
+    builder.row(InlineKeyboardButton(text='Инструкция по оплате', callback_data=f"start_instruction"))  # Обработчик для кнопки "Инструкция по оплате"
     builder.row(InlineKeyboardButton(text='Отправить вопрос администратору', callback_data=f"user_message"))
 
     try:

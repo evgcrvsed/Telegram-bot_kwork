@@ -4,7 +4,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from main import db
+from bot.main import db
 
 router = Router()
 

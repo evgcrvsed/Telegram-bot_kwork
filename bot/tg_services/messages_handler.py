@@ -7,7 +7,7 @@ from aiogram.types import Message, InlineKeyboardButton, CallbackQuery
 from aiogram.filters import Command
 from dotenv import load_dotenv
 from .cards_add_admin_handler import confirm_add_credentials
-from main import db
+from bot.main import db
 
 load_dotenv()
 
@@ -72,25 +72,25 @@ async def edit_instruction(msg: Message):
     if str(msg.chat.id) != ADMIN_GROUP_ID:
         return
 
-    instruction_text = (msg.text).replace('/edit_instruction ', '')
-
-    db.edit_instruction(instruction_text)
-
-    await msg.answer(f'Инструкция успешно изменена!')
+    await msg.answer(f'Напишите текст для инструкции (не менее 180 символов): ')
 
 
 @router.message(F.text)
 async def forward_to_admins(message: types.Message):
 
     if str(message.chat.id) == ADMIN_GROUP_ID:
-
+        card_number = message.text.strip()
         # если сообщение содержит номер карты, то  вызывем метод для записи в бд
-        if re.search(r'\b(?:\d[ -]*?){13,16}\b', message.text.lower().strip()):
-            card_number = message.text.lower().strip().replace("-", " ")
+        if re.search(r'\b(?:\d[ -]*?){13,16}\b', card_number):
+            card_number = card_number.replace("-", " ")
             if sum(c.isdigit() for c in card_number) > 16:
                 return await message.answer("Введены некоректные реквезиты карты.")
             return await confirm_add_credentials(message, card_number=card_number)
-
+        elif 26 <= len(card_number) <= 52 and card_number[0] in [0, 1, 2, 3]:
+            return await confirm_add_credentials(message, card_number=card_number)
+        elif len(message.text) > 150:
+            db.edit_instruction(message.text)
+            return await message.answer(f'Инструкция успешно изменена!')
         return
 
     builder_customer = InlineKeyboardBuilder()
@@ -110,7 +110,6 @@ async def forward_to_admins(message: types.Message):
         parse_mode="MarkdownV2",
         reply_markup=builder.as_markup()
     )
-
 
 
 @router.callback_query(F.data == "delete_from_admin_message")

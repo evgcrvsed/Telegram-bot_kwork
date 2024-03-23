@@ -3,7 +3,7 @@ from aiogram import Router, F, Bot
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from main import db
+from bot.main import db
 router = Router()
 
 
