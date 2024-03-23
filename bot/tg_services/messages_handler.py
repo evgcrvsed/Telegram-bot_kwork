@@ -1,4 +1,3 @@
-import asyncio
 import os
 import re
 from aiogram import Bot, Router, types, F
@@ -7,7 +6,7 @@ from aiogram.types import Message, InlineKeyboardButton, CallbackQuery
 from aiogram.filters import Command
 from dotenv import load_dotenv
 from .cards_add_admin_handler import confirm_add_credentials
-from bot.main import db
+from main import db
 
 load_dotenv()
 
@@ -16,7 +15,6 @@ bot = Bot(token=token)
 router = Router()
 
 ADMIN_GROUP_ID = '-1002114400170'
-
 
 
 @router.message(Command("show_info"))

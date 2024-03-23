@@ -1,9 +1,8 @@
-import os
-from aiogram import Router, F, Bot
+from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
+from aiogram.types import CallbackQuery, Message, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from bot.main import db
+from main import db
 router = Router()
 
 

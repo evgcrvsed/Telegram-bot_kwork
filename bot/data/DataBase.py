@@ -1,9 +1,4 @@
 import sqlite3 as sq
-import os
-import time
-
-
-# Создать таблицу "Instruction" с полями: instruction
 
 
 class DataBase:
@@ -80,4 +75,3 @@ class DataBase:
 
     def get_crypto_credentials(self):
         return self.get_cursor.execute("SELECT * FROM CryptoCredentials").fetchall()
-

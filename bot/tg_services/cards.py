@@ -4,7 +4,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from bot.main import db
+from main import db
 
 router = Router()
 
@@ -82,5 +82,3 @@ async def user_message(clb: CallbackQuery):
     await clb.message.answer(text=text, reply_markup=builder.as_markup())
 
     await select_option_message.delete()
-
-

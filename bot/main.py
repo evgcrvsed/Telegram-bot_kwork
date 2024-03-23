@@ -1,11 +1,9 @@
 import os, asyncio, logging
 import time
-
 from aiogram import Dispatcher, Bot
-from aiogram.types import BotCommand
 from dotenv import load_dotenv
 from data.DataBase import DataBase
-db = DataBase('bot/data/database.db')
+db = DataBase('data/database.db')
 load_dotenv()
 
 from tg_services import start, cards, messages_handler, cards_delete_admin_handler, cards_add_admin_handler

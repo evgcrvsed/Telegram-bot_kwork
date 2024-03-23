@@ -1,9 +1,9 @@
 import os
 from aiogram import Router, F, Bot
 from aiogram.filters import Command
-from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
+from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, BotCommand
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from bot.main import db
+from main import db
 router = Router()
 
 token: str = os.getenv("TELEGRAM_TOKEN")
@@ -20,6 +20,7 @@ async def set_commands(message: Message):
             BotCommand(command="/delete_credentials", description="Удалить все карты"),
         ]
         return await bot.set_my_commands(commands)
+
     commands = [
         BotCommand(command="/start", description="Начать"),
     ]
@@ -40,6 +41,7 @@ def get_instruction():
 @router.callback_query(F.data == 'start_instruction')
 async def start_instruction_callback(clb: CallbackQuery) -> Message:
     return await clb.message.answer(text=get_instruction())
+
 
 @router.callback_query(F.data == 'start')
 @router.message(Command("start"))

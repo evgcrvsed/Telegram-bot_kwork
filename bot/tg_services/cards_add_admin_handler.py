@@ -6,7 +6,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 router = Router()
 ADMIN_GROUP_ID = '-1002114400170'
 
-from bot.main import db
+from main import db
 
 
 @router.message(Command("add_credentials"))
