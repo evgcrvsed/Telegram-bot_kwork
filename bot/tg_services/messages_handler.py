@@ -93,7 +93,13 @@ async def forward_to_admins(message: types.Message):
 
         return
 
-    info_reply_to_admin = await message.answer("Ваш вопрос был переслан администраторам, ожидайте ответа.")
+    builder_customer = InlineKeyboardBuilder()
+    builder_customer.row(InlineKeyboardButton(text='Назад', callback_data=f"start"))
+
+    await message.answer(
+        text="Ваш вопрос был переслан администраторам, ожидайте ответа.",
+        reply_markup=builder_customer.as_markup()
+    )
 
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text='Удалить это сообщение', callback_data=f"delete_from_admin_message"))
@@ -105,9 +111,6 @@ async def forward_to_admins(message: types.Message):
         reply_markup=builder.as_markup()
     )
 
-    await asyncio.sleep(10)
-
-    await info_reply_to_admin.delete()
 
 
 @router.callback_query(F.data == "delete_from_admin_message")
