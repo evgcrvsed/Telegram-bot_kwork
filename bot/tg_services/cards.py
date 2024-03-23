@@ -49,21 +49,6 @@ async def give_credentials(clb, payment_type, prefix):
     await select_option_message.delete()
 
 
-#
-# async def give_credentials(clb, payment_type):
-#     select_option_message = clb.message
-#
-#     builder = InlineKeyboardBuilder()
-#     builder.row(InlineKeyboardButton(text='Вернуться к картам', callback_data=f"start"))
-#
-#     with open(f"bot/data/{filename}.txt", "r") as file:
-#         numbers = [line.strip() for line in file]
-#
-#     await clb.message.answer(text=f'{prefix}: {choice(numbers)}', reply_markup=builder.as_markup())
-#
-#     await select_option_message.delete()
-
-
 @router.callback_query(F.data == 'russian_cards')
 async def russian_cards(clb: CallbackQuery):
     await give_credentials(clb, payment_type='russian_cards', prefix='Карта РФ')

@@ -47,4 +47,3 @@ async def delete_umoney(clb: CallbackQuery):
 async def delete_crypto(clb: CallbackQuery):
     db.delete_credentials(table_name="CryptoCredentials")
     return await clb.message.answer(f"Все карты успешно удалены!")
-
