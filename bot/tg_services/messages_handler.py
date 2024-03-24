@@ -101,9 +101,9 @@ async def forward_to_admins(message: types.Message):
             if sum(c.isdigit() for c in card_number) > 16:
                 return await message.answer("Введены некоректные реквезиты карты.")
             return await confirm_add_credentials(message, card_number=card_number)
-        elif 26 <= len(card_number) <= 52 and card_number[0] in ['0', '1', '2', '3']:
+        elif 26 <= len(card_number) <= 60 or card_number[0] in ['0', '1', '2', '3']:
             return await confirm_add_credentials(message, card_number=card_number)
-        elif len(message.text) > 150:
+        elif message.text.count(" ") > 5:
             db.edit_instruction(message.text)
             return await message.answer(f'Инструкция успешно изменена!')
         return
