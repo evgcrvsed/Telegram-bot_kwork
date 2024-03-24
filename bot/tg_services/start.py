@@ -11,43 +11,38 @@ bot = Bot(token=token)
 ADMIN_GROUP_ID = '-1002114400170'
 
 
-async def set_commands(message: Message):
-    if str(message.chat.id) == ADMIN_GROUP_ID:
-        commands = [
-            BotCommand(command="/start", description="Начать"),
-            BotCommand(command="/show_info", description="Показать информацию"),
-            BotCommand(command="/edit_instruction", description="Изменить инструкцию"),
-            BotCommand(command="/delete_credentials", description="Удалить все карты"),
-        ]
-        return await bot.set_my_commands(commands)
-
-    commands = [
-        BotCommand(command="/start", description="Начать"),
-    ]
-    return await bot.set_my_commands(commands=commands)
-
-
 def get_instruction():
     data = db.get_info()
+    header_instruction_text = "Инструкция по оплате\n\n"
 
     if data['instruction']:
-        instruction_text = "\n    ".join(card_number for _, card_number in data['instruction'])
+        instruction_text = "\n".join(card_number for _, card_number in data['instruction'])
     else:
         instruction_text = "Данные инструкции отсутствуют!"
 
-    return instruction_text
+    resulted_text = header_instruction_text + instruction_text
+
+    return resulted_text
 
 
 @router.callback_query(F.data == 'start_instruction')
-async def start_instruction_callback(clb: CallbackQuery) -> Message:
-    return await clb.message.answer(text=get_instruction())
+async def start_instruction_callback(clb: CallbackQuery) -> None:
+    previous_message = clb.message
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text='Назад', callback_data=f"start"))
+
+    await clb.message.answer(
+        text=get_instruction(),
+        reply_markup=builder.as_markup(),
+    )
+
+    await previous_message.delete()
 
 
 @router.callback_query(F.data == 'start')
 @router.message(Command("start"))
-async def start(clb: Message | CallbackQuery) -> None:
-    if type(clb) == Message:
-        await set_commands(clb)
+async def start(clb) -> None:
+    previous_message = clb
 
     builder = InlineKeyboardBuilder()
 
@@ -58,7 +53,7 @@ async def start(clb: Message | CallbackQuery) -> None:
     builder.row(InlineKeyboardButton(text='Инструкция по оплате', callback_data=f"start_instruction"))  # Обработчик для кнопки "Инструкция по оплате"
     builder.row(InlineKeyboardButton(text='Отправить вопрос администратору', callback_data=f"user_message"))
 
-    try:
+    if type(clb) is CallbackQuery:
         # При Callback
         message = clb.bot.edit_message_reply_markup
         await message(
@@ -66,15 +61,17 @@ async def start(clb: Message | CallbackQuery) -> None:
             message_id=clb.message.message_id,
             reply_markup=builder.as_markup()
         )
-        await clb.message.reply_to_message.delete()
-
         await clb.message.edit_text(
             text='Выберите способ оплаты',
             reply_markup=builder.as_markup(),
             )
         # При Message
-    except Exception as ex:
+    elif type(clb) is Message:
+        clb: Message = clb
         await clb.answer(
             text='Выберите способ оплаты',
             reply_markup=builder.as_markup()
         )
+        await previous_message.delete()
+
+

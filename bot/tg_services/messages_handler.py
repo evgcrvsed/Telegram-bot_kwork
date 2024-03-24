@@ -1,5 +1,7 @@
 import os
 import re
+from string import punctuation
+
 from aiogram import Bot, Router, types, F
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import Message, InlineKeyboardButton, CallbackQuery
@@ -17,6 +19,17 @@ router = Router()
 ADMIN_GROUP_ID = '-1002114400170'
 
 
+async def reply_parse(replied_message: str) -> str:
+    modified_text = ""
+    for char in replied_message:
+        if char in punctuation and char != "`":
+            modified_text += "\\" + char
+        else:
+            modified_text += char
+
+    return modified_text
+
+
 @router.message(Command("show_info"))
 async def show_info(msg: Message):
     if str(msg.chat.id) != ADMIN_GROUP_ID:
@@ -24,45 +37,50 @@ async def show_info(msg: Message):
 
     data = db.get_info()
 
+    header_instruction_text = "Инструкция по оплате\n\n"
     if data['instruction']:
-        instruction_text = "\n    ".join(card_number for _, card_number in data['instruction'])
+        instruction_body = "\n".join(card_number for _, card_number in data['instruction'])
     else:
-        instruction_text = "Данные отсутствуют!"
+        instruction_body = "Данные инструкции отсутствуют!"
+    instruction_text = header_instruction_text + instruction_body + "\n\n"
 
+    russian_cards_header = "РФ\n"
     if data['russian_cards']:
-        russian_cards_text = "\n    ".join(card_number for _, card_number in data['russian_cards'])
+        russian_cards_body = "\n".join(card_number for _, card_number in data['russian_cards'])
     else:
-        russian_cards_text = "Данные отсутствуют!"
+        russian_cards_body = "Данные отсутствуют!"
+    russian_cards_text = f"```{russian_cards_header + russian_cards_body}```\n\n"
 
+    foreign_cards_header = "Зарубежные\n"
     if data['foreign_cards']:
-        foreign_cards_text = "\n    ".join(card_number for _, card_number in data['foreign_cards'])
+        foreign_cards_body = "\n".join(card_number for _, card_number in data['foreign_cards'])
     else:
-        foreign_cards_text = "Данные отсутствуют!"
+        foreign_cards_body = "Данные отсутствуют!"
+    foreign_cards_text = f"```{foreign_cards_header + foreign_cards_body}```\n\n"
 
+    umoney_header = "Юмани\n"
     if data['umoney']:
-        umoney_text = "\n    ".join(card_number for _, card_number in data['umoney'])
+        umoney_body = "\n".join(card_number for _, card_number in data['umoney'])
     else:
-        umoney_text = "Данные отсутствуют!"
+        umoney_body = "Данные отсутствуют!"
+    umoney_text = f"```{umoney_header + umoney_body}```\n\n"
 
+    crypto_header = "Крипто\n"
     if data['crypto']:
-        crypto_text = "\n    ".join(card_number for _, card_number in data['crypto'])
+        crypto_body = "\n".join(card_number for _, card_number in data['crypto'])
     else:
-        crypto_text = "Данные отсутствуют!"
+        crypto_body = "Данные отсутствуют!"
+    crypto_text = f"```{crypto_header + crypto_body}```"
 
-    text = f"""
-Instruction:
-    {f'{instruction_text}'}
-Russian cards:
-    {f'{russian_cards_text}'}
-Foreign cards:
-    {f'{foreign_cards_text}'}
-Umoney:
-    {f'{umoney_text}'}
-Crypto:
-    {f'{crypto_text}'}
-    """
+    resulted_text = instruction_text + \
+        russian_cards_text + \
+        foreign_cards_text + \
+        umoney_text + \
+        crypto_text
 
-    await msg.answer(text)
+    parsed_text = await reply_parse(resulted_text)
+
+    await msg.answer(parsed_text, parse_mode="MarkdownV2")
 
 
 @router.message(Command("edit_instruction"))
@@ -75,7 +93,6 @@ async def edit_instruction(msg: Message):
 
 @router.message(F.text)
 async def forward_to_admins(message: types.Message):
-
     if str(message.chat.id) == ADMIN_GROUP_ID:
         card_number = message.text.strip()
         # если сообщение содержит номер карты, то  вызывем метод для записи в бд
@@ -84,7 +101,7 @@ async def forward_to_admins(message: types.Message):
             if sum(c.isdigit() for c in card_number) > 16:
                 return await message.answer("Введены некоректные реквезиты карты.")
             return await confirm_add_credentials(message, card_number=card_number)
-        elif 26 <= len(card_number) <= 52 and card_number[0] in [0, 1, 2, 3]:
+        elif 26 <= len(card_number) <= 52 and card_number[0] in ['0', '1', '2', '3']:
             return await confirm_add_credentials(message, card_number=card_number)
         elif len(message.text) > 150:
             db.edit_instruction(message.text)
